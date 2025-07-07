@@ -3,6 +3,7 @@ import NewsLetter from '../models/NewsLetter.js';
 import auth from '../middleware/auth.js';
 import nodemailer from 'nodemailer';
 import validator from 'validator';
+import ExcelJS from 'exceljs';
 
 const router = express.Router();
 
@@ -67,9 +68,41 @@ router.delete('/', auth, async (req, res) => {
   }
 });
 
+// Download NewsLetters as Excel
+router.get('/download', auth, async (req, res) => {
+  try {
+    const newsLetters = await NewsLetter.find();
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Subscribers');
+
+    worksheet.columns = [
+      { header: 'Email', key: 'email', width: 50 },
+    ];
+
+    newsLetters.forEach((subscriber) => {
+      worksheet.addRow({ email: subscriber.email });
+    });
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=subscribers.xlsx'
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Error generating Excel file:', error);
+    res.status(500).json({ message: error.message || 'Failed to download subscribers' });
+  }
+});
+
 // Send custom email
 router.post('/send-email', auth, async (req, res) => {
-  const { emails, subject, message } = req.body;
+  const { emails, subject, message, isHtml } = req.body;
 
   try {
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
@@ -90,7 +123,7 @@ router.post('/send-email', auth, async (req, res) => {
       from: process.env.EMAIL_USER,
       to: emails.join(','),
       subject,
-      html: message,
+      [isHtml ? 'html' : 'text']: message,
     };
 
     await transporter.sendMail(mailOptions);

@@ -21,6 +21,9 @@ router.post('/', auth, upload.single('picture'), async (req, res) => {
     if (!req.body.techUsed) {
       return res.status(400).json({ message: 'Tech Used is required' });
     }
+    if (!req.body.githubLink) {
+      return res.status(400).json({ message: 'GitHub Link is required' });
+    }
     const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     const result = await cloudinary.uploader.upload(base64Image, {
       folder: 'projects',
@@ -30,6 +33,7 @@ router.post('/', auth, upload.single('picture'), async (req, res) => {
       name: req.body.name,
       description: req.body.description,
       techUsed: req.body.techUsed.split(',').map(tech => tech.trim()),
+      githubLink: req.body.githubLink,
       liveSiteLink: req.body.liveSiteLink || '',
       showOnMainPage: req.body.showOnMainPage === 'true',
     });
@@ -49,6 +53,37 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching projects:', error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Update Project
+router.patch('/:id', auth, upload.single('picture'), async (req, res) => {
+  try {
+    const project = await OurProjects.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    // Update fields
+    if (req.body.name) project.name = req.body.name;
+    if (req.body.description) project.description = req.body.description;
+    if (req.body.techUsed) project.techUsed = req.body.techUsed.split(',').map(tech => tech.trim());
+    if (req.body.githubLink) project.githubLink = req.body.githubLink;
+    if (req.body.liveSiteLink !== undefined) project.liveSiteLink = req.body.liveSiteLink;
+    if (req.body.showOnMainPage !== undefined) project.showOnMainPage = req.body.showOnMainPage === 'true';
+
+    // Update image if provided
+    if (req.file) {
+      const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      const result = await cloudinary.uploader.upload(base64Image, {
+        folder: 'projects',
+      });
+      project.picture = result.secure_url;
+    }
+
+    await project.save();
+    res.json(project);
+  } catch (error) {
+    console.error('Error updating project:', error);
+    res.status(500).json({ message: error.message || 'Failed to update project' });
   }
 });
 

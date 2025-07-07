@@ -6,6 +6,7 @@ const ourProjectsSchema = new mongoose.Schema({
   description: { type: String, required: true },
   techUsed: { type: [String], required: true },
   liveSiteLink: { type: String, required: true },
+  githubLink: { type: String, required: true },
   showOnMainPage: { type: Boolean, default: false },
 });
 

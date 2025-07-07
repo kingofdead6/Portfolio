@@ -7,6 +7,7 @@ import ourProjectsRoutes from './routes/ourProjects.js';
 import contactUsRoutes from './routes/contactUs.js';
 import newsLetterRoutes from './routes/newsLetter.js';
 import adminRoutes from './routes/admin.js';
+import skillsRoutes from './routes/skills.js';
 
 dotenv.config();
 connectDB();
@@ -18,8 +19,9 @@ app.use(express.json());
 app.use('/api/techstack', techStackRoutes);
 app.use('/api/projects', ourProjectsRoutes);
 app.use('/api/contactus', contactUsRoutes);
-app.use('/api/newsletters', newsLetterRoutes);
+app.use('/api/newsletter', newsLetterRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/skills' , skillsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
