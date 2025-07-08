@@ -23,16 +23,14 @@ const Computers = ({ isMobile }) => {
 
   return (
     <mesh>
-      <hemisphereLight intensity={1.6} groundColor="black" />
-      <spotLight
-        position={[10, 20, 10]}
-        angle={0.2}
-        penumbra={0.5}
-        intensity={1.5}
-        castShadow
-        shadow-mapSize={1024}
-        target-position={isMobile ? [0, -3, -2.2] : [0, -3.25, -1.5]}
-      />
+      <hemisphereLight intensity={1} groundColor="black" />
+<spotLight
+  position={[10, 20, 10]}
+  angle={0.2}
+  penumbra={1}
+  intensity={1}
+  castShadow={false}
+/>
       <spotLight
         position={[-10, 15, 5]}
         angle={0.15}
@@ -60,7 +58,7 @@ const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 500px)");
+    const mediaQuery = window.matchMedia("(max-width: 300px)");
     setIsMobile(mediaQuery.matches);
 
     const handleMediaQueryChange = (event) => {
@@ -78,7 +76,7 @@ const ComputersCanvas = () => {
     <Canvas
       frameloop="demand"
       shadows
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
       camera={{ position: [20, 3, 5], fov: 25 }}
       gl={{ preserveDrawingBuffer: true }}
     >
