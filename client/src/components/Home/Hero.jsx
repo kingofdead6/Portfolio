@@ -1,9 +1,10 @@
 import React, { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import CanvasLoader from "../canvas/Loader";
 
+// === Styles ===
 const styles = {
   paddingX: "sm:px-16 px-6",
   paddingY: "sm:py-16 py-6",
@@ -12,54 +13,32 @@ const styles = {
     "font-black text-white lg:text-[80px] sm:text-[60px] xs:text-[50px] text-[40px] lg:leading-[98px] mt-2",
   heroSubText:
     "text-[#dfd9ff] font-medium lg:text-[30px] sm:text-[26px] xs:text-[20px] text-[16px] lg:leading-[40px]",
-  sectionHeadText:
-    "text-white font-black md:text-[60px] sm:text-[50px] xs:text-[40px] text-[30px]",
-  sectionSubText:
-    "sm:text-[18px] text-[14px] text-secondary uppercase tracking-wider",
 };
 
-const Computers = ({ isMobile }) => {
-  const computer = useGLTF("./desktop_pc/scene.gltf");
+// === 3D Model Component ===
+const Computers = () => {
+  const computer = useGLTF("/desktop_pc/scene.gltf");
 
   return (
     <mesh>
-      <hemisphereLight intensity={1} groundColor="black" />
-<spotLight
-  position={[10, 20, 10]}
-  angle={0.2}
-  penumbra={1}
-  intensity={1}
-  castShadow={false}
-/>
-      <spotLight
-        position={[-10, 15, 5]}
-        angle={0.15}
-        penumbra={0.5}
-        intensity={1.2}
-        castShadow
-        shadow-mapSize={1024}
-        target-position={isMobile ? [0, -3, -2.2] : [0, -3.25, -1.5]}
-      />
-      <pointLight
-        intensity={0.8}
-        position={isMobile ? [0, -2, -1.5] : [0, -2.5, -1]}
-      />
+      <ambientLight intensity={0.6} />
+      <directionalLight intensity={0.8} position={[5, 5, 5]} />
       <primitive
-  object={computer.scene}
-  scale={isMobile ? 0.6 : 0.75}
-  position={isMobile ? [0, -3, -2.5] : [0, -3.25, -1.5]}
-  rotation={[-0.01, -0.2, -0.1]}
-/>
-
+        object={computer.scene}
+        scale={0.75}
+        position={[0, -3.25, -1.5]}
+        rotation={[-0.01, -0.2, -0.1]}
+      />
     </mesh>
   );
 };
 
+// === Canvas Wrapper ===
 const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
     setIsMobile(mediaQuery.matches);
 
     const handleMediaQueryChange = (event) => {
@@ -67,37 +46,32 @@ const mediaQuery = window.matchMedia("(max-width: 768px)");
     };
 
     mediaQuery.addEventListener("change", handleMediaQueryChange);
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleMediaQueryChange);
-    };
+    return () => mediaQuery.removeEventListener("change", handleMediaQueryChange);
   }, []);
+
+  if (isMobile) return null; // ❌ Skip rendering on mobile
 
   return (
     <Canvas
       frameloop="demand"
-shadows={!isMobile}
-dpr={isMobile ? 1 : [1, 1.5]}
+      shadows={false}
+      dpr={[1, 1.5]}
       camera={{ position: [20, 3, 5], fov: 25 }}
-      gl={{ preserveDrawingBuffer: true }}
+      gl={{ preserveDrawingBuffer: true, powerPreference: "low-power", antialias: false }}
     >
       <Suspense fallback={<CanvasLoader />}>
-        <OrbitControls
-          enableZoom={false}
-          minPolarAngle={isMobile ? Math.PI / 2 : 0}
-          maxPolarAngle={isMobile ? Math.PI / 2 : Math.PI}
-        />
-        <Computers isMobile={isMobile} />
+        <OrbitControls enableZoom={false} />
+        <Computers />
       </Suspense>
-      <Preload all />
     </Canvas>
   );
 };
 
+// === Hero Section ===
 const Hero = () => {
   return (
     <section
-      className={`relative w-full h-screen mx-auto bg-[url('https://res.cloudinary.com/dtwa3lxdk/image/upload/v1751888504/herobg_x5fme4.png')] bg-cover bg-center bg-no-repeat overflow-visible`}
+      className={`relative w-full h-100 sm:h-screen mx-auto bg-[url('https://res.cloudinary.com/dtwa3lxdk/image/upload/v1751888504/herobg_x5fme4.png')] bg-cover bg-center bg-no-repeat overflow-visible`}
     >
       <div
         className={`absolute inset-0 top-[120px] max-w-7xl mx-auto ${styles.paddingX} flex flex-row items-start gap-5`}
@@ -115,22 +89,11 @@ const Hero = () => {
           </p>
         </div>
       </div>
+
+      {/* === 3D Canvas (hidden on mobile) === */}
       <ComputersCanvas />
-      <div className="absolute xs:bottom-10 bottom-32 w-full flex justify-center items-center">
-        <a href="#about">
-          <div className="w-[35px] h-[64px] rounded-3xl border-4 border-secondary flex justify-center items-start p-2">
-            <motion.div
-              animate={{ y: [0, 24, 0] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                repeatType: "loop",
-              }}
-              className="w-3 h-3 rounded-full bg-secondary mb-1"
-            />
-          </div>
-        </a>
-      </div>
+
+     
     </section>
   );
 };
