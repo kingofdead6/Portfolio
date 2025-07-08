@@ -56,6 +56,7 @@ const SectionWrapper = (Component, idName) => {
   );
 };
 
+
 const ServiceCard = ({ index, title, icon }) => (
   <Tilt className="xs:w-[250px] w-full">
     <motion.div
@@ -65,6 +66,12 @@ const ServiceCard = ({ index, title, icon }) => (
       <div
         options={{ max: 45, scale: 1, speed: 450 }}
         className="bg-[#1a0b2e] rounded-[20px] py-5 px-12 min-h-[280px] flex justify-evenly items-center flex-col"
+        style={{
+          backgroundImage: `url('https://res.cloudinary.com/dtwa3lxdk/image/upload/v1750716685/AboutUsBg_y6n5fu.jpg')`,
+          backgroundSize: 'cover',
+          backgroundBlendMode: 'soft-light',
+          opacity: 0.9,
+        }}
       >
         <img
           src={icon || '/placeholder.png'}

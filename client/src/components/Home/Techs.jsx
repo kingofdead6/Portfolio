@@ -14,6 +14,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { API_BASE_URL } from '../../../api';
+import { memo } from "react";
 
 const styles = {
   paddingX: "sm:px-16 px-6",
@@ -71,33 +72,6 @@ const staggerContainer = (staggerChildren, delayChildren) => ({
   },
 });
 
-// Error Boundary
-class CanvasErrorBoundary extends Component {
-  state = { hasError: false };
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="text-[#aaa6c3] text-center">
-          Failed to load 3D content. Please try refreshing the page.
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-// Three.js-compatible CanvasLoader
-const CanvasLoader = () => (
-  <Html center>
-    <div className="w-8 h-8 border-4 border-t-white border-gray-600 rounded-full animate-spin" />
-  </Html>
-);
-
 // Placeholder SectionWrapper HOC
 const SectionWrapper = (Component, idName) => {
   return (props) => (
@@ -113,14 +87,38 @@ const SectionWrapper = (Component, idName) => {
   );
 };
 
-const Ball = (props) => {
-  const [decal] = useTexture([props.imgUrl]);
+// Error Boundary remains unchanged
+class CanvasErrorBoundary extends React.Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    return this.state.hasError ? (
+      <div className="text-[#aaa6c3] text-center">
+        Failed to load 3D content. Please try refreshing the page.
+      </div>
+    ) : (
+      this.props.children
+    );
+  }
+}
 
+// Loader component stays the same
+const CanvasLoader = () => (
+  <Html center>
+    <div className="w-8 h-8 border-4 border-t-white border-gray-600 rounded-full animate-spin" />
+  </Html>
+);
+
+// Memoized Ball
+const Ball = memo(({ imgUrl }) => {
+  const [decal] = useTexture([imgUrl]);
   return (
-    <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[0, 0, 0.05]} />
-      <mesh castShadow receiveShadow scale={2.75}>
+    <Float speed={1.5} rotationIntensity={0.75} floatIntensity={1.5}>
+      <ambientLight intensity={0.2} />
+      <directionalLight position={[0, 0, 0.1]} />
+      <mesh castShadow receiveShadow scale={2.5}>
         <icosahedronGeometry args={[1, 1]} />
         <meshStandardMaterial
           color="#fff8eb"
@@ -138,17 +136,18 @@ const Ball = (props) => {
       </mesh>
     </Float>
   );
-};
+});
 
-const BallCanvas = ({ icon, name }) => {
+// BallCanvas with lighter config
+const BallCanvas = memo(({ icon, name }) => {
   return (
     <Canvas
       frameloop="demand"
-      dpr={[1, 2]}
-      gl={{ preserveDrawingBuffer: true }}
+      dpr={[1, 1.5]}
+      gl={{ preserveDrawingBuffer: true, powerPreference: "low-power" }}
     >
       <Suspense fallback={<CanvasLoader />}>
-        <OrbitControls enableZoom={false} />
+        <OrbitControls enableZoom={false} enablePan={false} />
         <Ball imgUrl={icon} />
         <Html center>
           <div className="text-[#aaa6c3] text-sm mt-2">{name}</div>
@@ -157,7 +156,7 @@ const BallCanvas = ({ icon, name }) => {
       <Preload all />
     </Canvas>
   );
-};
+});
 
 const Tech = () => {
   const [technologies, setTechnologies] = useState([]);
@@ -166,20 +165,20 @@ const Tech = () => {
 
   useEffect(() => {
     const fetchTechStacks = async () => {
-      setLoading(true);
       try {
-        const response = await axios.get(`${API_BASE_URL}/techstack`);
-        const mainPageTechs = response.data.filter(tech => tech.showOnMainPage).map(tech => ({
-          name: tech.name,
-          icon: tech.picture || 'https://via.placeholder.com/150', // Fallback image
-        }));
+        const { data } = await axios.get(`${API_BASE_URL}/techstack`);
+        const mainPageTechs = data
+          .filter((tech) => tech.showOnMainPage)
+          .map((tech) => ({
+            name: tech.name,
+            icon: tech.picture || "https://via.placeholder.com/150",
+          }));
         setTechnologies(mainPageTechs);
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch technologies');
-        toast.error(err.response?.data?.message || 'Failed to fetch technologies', {
-          position: 'top-right',
-          autoClose: 3000,
-        });
+        const message =
+          err.response?.data?.message || "Failed to fetch technologies";
+        toast.error(message, { position: "top-right", autoClose: 3000 });
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -199,11 +198,21 @@ const Tech = () => {
         variants={fadeIn("up", "spring", 0.1, 1)}
         className="max-w-7xl mx-auto"
       >
-        <motion.div variants={staggerContainer(0.1, 0.2)} initial="hidden" animate="show">
-          <motion.p variants={textVariant(0.2)} className={`${styles.sectionSubText} text-[#aaa6c3]`}>
+        <motion.div
+          variants={staggerContainer(0.1, 0.2)}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.p
+            variants={textVariant(0.2)}
+            className={`${styles.sectionSubText} text-[#aaa6c3]`}
+          >
             Technologies
           </motion.p>
-          <motion.h2 variants={textVariant(0.3)} className={`${styles.sectionHeadText}`}>
+          <motion.h2
+            variants={textVariant(0.3)}
+            className={styles.sectionHeadText}
+          >
             My Tech Stack.
           </motion.h2>
         </motion.div>
@@ -212,7 +221,15 @@ const Tech = () => {
           variants={fadeIn("up", "spring", 0.4, 1)}
           className="mt-4 text-[#aaa6c3] text-[17px] max-w-3xl leading-[30px]"
         >
-          I leverage a powerful set of <span className="font-semibold">modern technologies</span> to build robust, scalable, and engaging web applications. From <span className="font-semibold">front-end frameworks</span> to <span className="font-semibold">back-end solutions</span>, my tech stack is designed to deliver <span className="font-semibold">high-performance</span> and <span className="font-semibold">user-friendly</span> digital experiences. Explore the tools I use to bring ideas to life!
+          I leverage a powerful set of{" "}
+          <span className="font-semibold">modern technologies</span> to build
+          robust, scalable, and engaging web applications. From{" "}
+          <span className="font-semibold">front-end frameworks</span> to{" "}
+          <span className="font-semibold">back-end solutions</span>, my tech
+          stack is designed to deliver{" "}
+          <span className="font-semibold">high-performance</span> and{" "}
+          <span className="font-semibold">user-friendly</span> digital
+          experiences. Explore the tools I use to bring ideas to life!
         </motion.p>
 
         {loading ? (
