@@ -1,11 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaGithub, FaLinkedin } from 'react-icons/fa';
+import { FaAppStore, FaGithub, FaLinkedin } from 'react-icons/fa';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { API_BASE_URL } from '../../../api';
+import { IoLogoGooglePlaystore } from "react-icons/io5";
 
 const textVariants = {
   initial: { opacity: 0, y: 20 },
@@ -219,7 +220,16 @@ const Footer = () => {
               >
                 <FaLinkedin />
               </a>
+              <a
+                href="https://my-portfolio-app-omega-one.vercel.app/YoucefPortfolio.apk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link text-[#dfd9ff] text-3xl"
+              >
+                <IoLogoGooglePlaystore />
+              </a>
             </div>
+            
           </div>
 
           {/* Agency Link */}

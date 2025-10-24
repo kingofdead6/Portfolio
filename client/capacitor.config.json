@@ -1,0 +1,6 @@
+{
+  "appId": "com.youcef.portfolio",
+  "appName": "youcefportfolio",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

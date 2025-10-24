@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">youcefportfolio</string>
+    <string name="title_activity_main">youcefportfolio</string>
+    <string name="package_name">com.youcef.portfolio</string>
+    <string name="custom_url_scheme">com.youcef.portfolio</string>
+</resources>
